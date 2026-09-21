@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkWise - Smart & Interactive Parking Management</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for crisp icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti for booking celebration -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <!-- Top Announcement Bar with Live Status -->
+    <div class="top-bar">
+        <div class="top-bar-inner">
+            <span class="live-pulse-badge"><span class="pulse-dot"></span> LIVE SYSTEM CONNECTED</span>
+            <span class="top-bar-tip"><i class="fa-solid fa-bolt text-amber"></i> Tip: Click on any parking bay on the map to instantly reserve it!</span>
+            <div class="top-bar-actions">
+                <button id="soundToggleBtn" class="sound-toggle" title="Toggle Sound FX">
+                    <i class="fa-solid fa-volume-high" id="soundIcon"></i>
+                    <span id="soundText">Sound On</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="#home" class="logo">
+            <span class="logo-mark"><i class="fa-solid fa-square-parking"></i></span>
+            Park<span class="text-amber">Wise</span>
+        </a>
+
+        <div class="nav-links">
+            <a href="#home" class="nav-link active"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="#map-section" class="nav-link"><i class="fa-solid fa-map-location-dot"></i> Live Lot Map</a>
+            <a href="#parking" class="nav-link"><i class="fa-solid fa-magnifying-glass"></i> Find Slot</a>
+            <a href="#bookings" class="nav-link nav-bookings-btn">
+                <i class="fa-solid fa-ticket"></i> My Bookings
+                <span id="navBookingBadge" class="nav-badge" style="display: none;">0</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section with Interactive Playground -->
+    <section class="hero" id="home">
+        <div class="hero-bg-glow"></div>
+        <div class="hero-content">
+            <div class="hero-tagline">
+                <i class="fa-solid fa-shield-halved"></i> Next-Gen Automated Parking System
+            </div>
+
+            <h1>
+                Park Smart.<br>
+                <span class="gradient-text">Zero Circling.</span>
+            </h1>
+
+            <p class="hero-text">
+                Experience real-time interactive parking slot booking, automated check-in passes, live parking countdowns, and dynamic navigation.
+            </p>
+
+            <div class="hero-actions">
+                <a href="#map-section" class="hero-button primary-btn">
+                    <i class="fa-solid fa-compass"></i> Open Interactive Map
+                </a>
+                <a href="#parking" class="hero-button secondary-btn">
+                    <i class="fa-solid fa-calendar-check"></i> Quick Reserve
+                </a>
+            </div>
+
+            <!-- Live Metrics Stats Row -->
+            <div class="hero-stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="statFreeSlots">8</span>
+                        <span class="stat-label">Available Slots</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-gauge-high"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="statOccupancy">38%</span>
+                        <span class="stat-label">Occupancy Rate</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-charging-station text-amber"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value">4 EV</span>
+                        <span class="stat-label">Fast Chargers</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value">24/7</span>
+                        <span class="stat-label">Secure Access</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Hero Lot Playground -->
+        <div class="hero-lot-wrapper">
+            <div class="hero-lot-header">
+                <span><i class="fa-solid fa-hand-pointer"></i> Interactive Demo Lot — Click any empty bay to park!</span>
+                <span class="badge-mini">Live Simulation</span>
+            </div>
+            <div class="lot" id="heroInteractiveLot" aria-label="Interactive demo lot">
+                <!-- Bays injected or hydrated via script for interactivity -->
+                <div class="bay occupied" data-bay="1"><span class="car car--silver"></span><span class="bay-num">P1</span></div>
+                <div class="bay empty" data-bay="2" title="Click to park here!"><span class="bay-p">P</span><span class="bay-num">P2</span></div>
+                <div class="bay occupied" data-bay="3"><span class="car car--charcoal"></span><span class="bay-num">P3</span></div>
+                <div class="bay bay--open occupied" data-bay="4"><span class="car car--amber"></span><span class="bay-num">P4</span></div>
+                <div class="bay occupied" data-bay="5"><span class="car car--sky"></span><span class="bay-num">P5</span></div>
+                <div class="bay occupied" data-bay="6"><span class="car car--bike"></span><span class="bay-num">P6</span></div>
+                <div class="bay empty" data-bay="7" title="Click to park here!"><span class="bay-p">P</span><span class="bay-num">P7</span></div>
+                <div class="bay occupied" data-bay="8"><span class="car car--white"></span><span class="bay-num">P8</span></div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Live Interactive 2D Parking Lot Map Section -->
+    <section class="lot-map-section" id="map-section">
+        <div class="section-title">
+            <div class="section-tag"><i class="fa-solid fa-layer-group"></i> 2D Spatial Overview</div>
+            <h2>Live Interactive Parking Map</h2>
+            <p>Pick your preferred zone, view live occupancy, and tap any slot to inspect details or reserve immediately.</p>
+        </div>
+
+        <div class="map-controls-bar">
+            <!-- Zone Filter Buttons -->
+            <div class="zone-switcher" id="zoneSwitcher">
+                <button class="zone-btn active" data-zone="all"><i class="fa-solid fa-border-all"></i> All Zones</button>
+                <button class="zone-btn" data-zone="Zone A"><i class="fa-solid fa-car-side"></i> Zone A (Ground)</button>
+                <button class="zone-btn" data-zone="Zone B"><i class="fa-solid fa-motorcycle"></i> Zone B (Bike Deck)</button>
+                <button class="zone-btn" data-zone="Zone C"><i class="fa-solid fa-bolt"></i> Zone C (EV Express)</button>
+            </div>
+
+            <!-- Map Legend -->
+            <div class="map-legend">
+                <div class="legend-item"><span class="legend-dot available"></span> Available</div>
+                <div class="legend-item"><span class="legend-dot occupied"></span> Occupied</div>
+                <div class="legend-item"><span class="legend-dot selected"></span> Selected</div>
+                <div class="legend-item"><span class="legend-dot ev"></span> EV Ready</div>
+            </div>
+        </div>
+
+        <!-- 2D Visual Map Canvas Container -->
+        <div class="visual-lot-container">
+            <!-- Entry Gate Indicator -->
+            <div class="lot-gate entry-gate">
+                <div class="gate-sign"><i class="fa-solid fa-arrow-right-to-bracket"></i> ENTRY GATE A</div>
+                <div class="gate-sensor"><span class="sensor-light"></span> BARRIER OPEN</div>
+            </div>
+
+            <!-- Main Drive Aisle (Roadway) -->
+            <div class="drive-aisle top-lane">
+                <div class="road-marks"><span class="arrow-mark">➔ DRIVE LANE ➔</span></div>
+            </div>
+
+            <!-- Interactive Visual Bays Grid -->
+            <div class="visual-bays-grid" id="visualBaysGrid">
+                <!-- Injected dynamically via JS with rich icons, status, EV chargers -->
+            </div>
+
+            <div class="drive-aisle bottom-lane">
+                <div class="road-marks"><span class="arrow-mark">➔ DRIVE LANE ➔</span></div>
+            </div>
+
+            <!-- Exit Gate Indicator -->
+            <div class="lot-gate exit-gate">
+                <div class="gate-sign"><i class="fa-solid fa-arrow-right-from-bracket"></i> EXIT GATE B</div>
+                <div class="gate-sensor"><span class="sensor-light green"></span> CLEAR TO EXIT</div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Parking Search & Live Duration Calculator Section -->
+    <section class="parking-section" id="parking">
+        <div class="section-title">
+            <div class="section-tag"><i class="fa-solid fa-sliders"></i> Smart Booking Engine</div>
+            <h2>Find & Customize Your Slot</h2>
+            <p>Select your criteria, pick your exact duration with real-time fee recalculation, and lock in your bay.</p>
+        </div>
+
+        <div class="search-card">
+            <div class="form-group">
+                <label for="location"><i class="fa-solid fa-location-dot"></i> Location</label>
+                <select id="location">
+                    <option value="all">All locations (VIT & City)</option>
+                    <option value="VIT Parking" selected>VIT Parking (Bibwewadi)</option>
+                    <option value="City Parking">City Parking (Swargate)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="vehicleType"><i class="fa-solid fa-car"></i> Vehicle Type</label>
+                <select id="vehicleType">
+                    <option value="all">All Vehicles</option>
+                    <option value="car" selected>🚗 Four Wheeler / Car</option>
+                    <option value="bike">🏍️ Two Wheeler / Bike</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="bookingDate"><i class="fa-solid fa-calendar-day"></i> Date</label>
+                <input type="date" id="bookingDate">
+            </div>
+
+            <div class="form-group">
+                <label for="startTime"><i class="fa-solid fa-clock"></i> Start Time</label>
+                <input type="time" id="startTime">
+            </div>
+
+            <button class="search-button" id="searchSubmitBtn" onclick="findParking()">
+                <i class="fa-solid fa-magnifying-glass"></i> Check Slots
+            </button>
+        </div>
+
+        <!-- Interactive Duration & Price Calculator Card (Synced with selected slot) -->
+        <div class="booking-configurator-card" id="bookingConfigurator" style="display: none;">
+            <div class="config-header">
+                <div class="selected-slot-preview">
+                    <span class="plate-highlight" id="cfgSlotPlate">A1</span>
+                    <div>
+                        <h4 id="cfgSlotTitle">Slot A1 - Four Wheeler Bay</h4>
+                        <p id="cfgSlotLocation"><i class="fa-solid fa-location-pin"></i> VIT Parking • Zone A (Ground Floor)</p>
+                    </div>
+                </div>
+                <div class="config-badge" id="cfgSlotBadge"><i class="fa-solid fa-bolt text-amber"></i> EV Ready</div>
+            </div>
+
+            <div class="config-body">
+                <!-- Vehicle Number Plate Input -->
+                <div class="config-group">
+                    <label for="vehiclePlateInput"><i class="fa-solid fa-id-card"></i> Vehicle Plate Number</label>
+                    <div class="plate-input-wrapper">
+                        <span class="plate-country">IND</span>
+                        <input type="text" id="vehiclePlateInput" placeholder="MH 12 AB 1234" maxlength="13">
+                    </div>
+                </div>
+
+                <!-- Interactive Duration Slider -->
+                <div class="config-group duration-group">
+                    <div class="duration-label-row">
+                        <label for="durationSlider"><i class="fa-solid fa-hourglass-half"></i> Duration</label>
+                        <span class="duration-value-tag" id="durationDisplay">2 Hours</span>
+                    </div>
+                    <input type="range" id="durationSlider" min="1" max="12" step="1" value="2" class="range-slider">
+                    
+                    <!-- Quick Pill Selection -->
+                    <div class="duration-pills">
+                        <button type="button" class="pill-btn" data-hours="1">1 hr</button>
+                        <button type="button" class="pill-btn active" data-hours="2">2 hrs</button>
+                        <button type="button" class="pill-btn" data-hours="4">4 hrs</button>
+                        <button type="button" class="pill-btn" data-hours="8">8 hrs</button>
+                        <button type="button" class="pill-btn" data-hours="12">Full Day (12h)</button>
+                    </div>
+                </div>
+
+                <!-- Live Price Calculation Summary -->
+                <div class="price-summary-box">
+                    <div class="summary-line">
+                        <span>Base Rate (<span id="calcBaseRate">₹30</span>/hr × <span id="calcHours">2</span> hrs)</span>
+                        <span id="calcBaseTotal">₹60</span>
+                    </div>
+                    <div class="summary-line">
+                        <span>Parking Insurance & CCTV Safety</span>
+                        <span class="text-free">FREE</span>
+                    </div>
+                    <div class="summary-line">
+                        <span>Applicable GST (5%)</span>
+                        <span id="calcTax">₹3</span>
+                    </div>
+                    <div class="summary-divider"></div>
+                    <div class="summary-total-line">
+                        <div>
+                            <strong>Estimated Total</strong>
+                            <small id="calcEstimatedEnd">Valid until 04:30 PM</small>
+                        </div>
+                        <span class="total-amount" id="calcGrandTotal">₹63</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-footer">
+                <button type="button" class="btn-cancel-select" onclick="clearSelectedSlot()">
+                    <i class="fa-solid fa-xmark"></i> Deselect
+                </button>
+                <button type="button" class="btn-proceed-pay" id="proceedToPayBtn" onclick="openPaymentModal()">
+                    <i class="fa-solid fa-lock"></i> Proceed to Instant Booking • <span id="btnPayAmount">₹63</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Available Slots Cards Display -->
+        <div class="slots-container">
+            <div class="slots-header">
+                <div>
+                    <h3>Slot Cards & Quick Book</h3>
+                    <p class="text-muted">Cards are live-synced with the 2D map above.</p>
+                </div>
+
+                <div class="slots-header-right">
+                    <!-- Amenities Quick Filter -->
+                    <div class="quick-filter-chips">
+                        <button class="chip-filter active" data-filter="all">All</button>
+                        <button class="chip-filter" data-filter="ev"><i class="fa-solid fa-bolt text-amber"></i> EV Fast Charge</button>
+                        <button class="chip-filter" data-filter="covered"><i class="fa-solid fa-umbrella"></i> Covered</button>
+                    </div>
+
+                    <span id="slotCount" aria-live="polite">
+                        0 slots available
+                    </span>
+                </div>
+            </div>
+
+            <div id="slots" class="slots-grid">
+                <div class="empty-message">
+                    <i class="fa-solid fa-circle-notch fa-spin fa-2x mb-2"></i><br>
+                    Loading available parking spaces...
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- My Bookings Section with Live Timers & Extension -->
+    <section class="bookings-section" id="bookings">
+        <div class="section-title">
+            <div class="section-tag"><i class="fa-solid fa-clock-rotate-left"></i> Real-time Dashboard</div>
+            <h2>My Reservations</h2>
+            <p>Manage active parking sessions with live countdowns, extend duration, view digital QR passes, or cancel bookings.</p>
+        </div>
+
+        <!-- Filter tabs for bookings -->
+        <div class="booking-tabs">
+            <button class="tab-btn active" data-tab="active"><i class="fa-solid fa-hourglass-start"></i> Active & Upcoming</button>
+            <button class="tab-btn" data-tab="all"><i class="fa-solid fa-list-check"></i> All Bookings</button>
+        </div>
+
+        <div id="bookingHistory" class="booking-list">
+            <div class="empty-message">
+                <i class="fa-solid fa-ticket fa-2x mb-2"></i><br>
+                No active bookings yet. Select a slot from the map or list above to book.
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Interactive Payment Simulator Modal -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closePaymentModal()">&times;</button>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-shield-halved text-amber"></i> Secure Checkout</h3>
+                <p>Simulated Instant Payment Gateway</p>
+            </div>
+
+            <div class="payment-tabs">
+                <button class="pay-tab-btn active" data-method="upi"><i class="fa-solid fa-qrcode"></i> Instant UPI QR</button>
+                <button class="pay-tab-btn" data-method="card"><i class="fa-solid fa-credit-card"></i> Card</button>
+                <button class="pay-tab-btn" data-method="cash"><i class="fa-solid fa-hand-holding-dollar"></i> Pay at Gate</button>
+            </div>
+
+            <!-- UPI View -->
+            <div class="pay-content active" id="payContentUpi">
+                <div class="upi-qr-box">
+                    <div class="simulated-qr">
+                        <!-- Rendered SVG QR simulation with ParkWise branding -->
+                        <div class="qr-frame">
+                            <div class="qr-corner top-left"></div>
+                            <div class="qr-corner top-right"></div>
+                            <div class="qr-corner bottom-left"></div>
+                            <div class="qr-pattern">
+                                <i class="fa-solid fa-qrcode fa-5x"></i>
+                                <span class="qr-logo-badge">P</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="upi-id-copy">
+                        <span>UPI: <strong>parkwise.pay@upi</strong></span>
+                        <button type="button" class="btn-copy" onclick="copyUpiId()"><i class="fa-solid fa-copy"></i></button>
+                    </div>
+                    <div class="upi-apps-row">
+                        <span class="app-chip">GPay</span>
+                        <span class="app-chip">PhonePe</span>
+                        <span class="app-chip">Paytm</span>
+                        <span class="app-chip">Cred</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card View with 3D Flip Card -->
+            <div class="pay-content" id="payContentCard" style="display: none;">
+                <div class="virtual-card">
+                    <div class="card-chip"></div>
+                    <div class="card-number-display" id="cardNumPreview">•••• •••• •••• 4242</div>
+                    <div class="card-bottom">
+                        <div>
+                            <span class="card-lbl">CARD HOLDER</span>
+                            <span class="card-val" id="cardHolderPreview">ALEX MORGAN</span>
+                        </div>
+                        <div>
+                            <span class="card-lbl">EXPIRES</span>
+                            <span class="card-val">12/28</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-inputs">
+                    <input type="text" placeholder="Card Number (4242 ...)" value="4242 8890 1234 5678" readonly>
+                    <div class="card-row">
+                        <input type="text" placeholder="MM/YY" value="12/28" readonly>
+                        <input type="password" placeholder="CVV" value="888" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cash View -->
+            <div class="pay-content" id="payContentCash" style="display: none;">
+                <div class="cash-box">
+                    <i class="fa-solid fa-money-bill-wave fa-3x text-amber mb-2"></i>
+                    <p>Pay cash directly at the parking entrance kiosk upon scanning your digital pass.</p>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div class="modal-amount-row">
+                    <span>Payable Amount:</span>
+                    <strong class="text-amber" id="modalPayableAmount">₹63.00</strong>
+                </div>
+                <button class="confirm-pay-btn" id="confirmPayBtn" onclick="processPayment()">
+                    <i class="fa-solid fa-circle-check"></i> Authorize & Complete Booking
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Digital Parking Pass / QR Ticket Modal -->
+    <div class="modal-overlay" id="ticketModal">
+        <div class="modal-card ticket-modal-card">
+            <button class="modal-close" onclick="closeTicketModal()">&times;</button>
+            
+            <div class="ticket-wrapper" id="printableTicket">
+                <!-- Ticket Header -->
+                <div class="ticket-header">
+                    <div class="ticket-logo">
+                        <span class="logo-mark">P</span>
+                        <span>Park<strong>Wise</strong> Pass</span>
+                    </div>
+                    <span class="ticket-status-tag">CONFIRMED</span>
+                </div>
+
+                <!-- Ticket Body -->
+                <div class="ticket-body">
+                    <div class="ticket-slot-hero">
+                        <span class="ticket-slot-plate" id="ticketSlotPlate">A1</span>
+                        <div class="ticket-slot-meta">
+                            <h3 id="ticketLotName">VIT Parking</h3>
+                            <span id="ticketSlotZone">Zone A (Ground Floor)</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-details-grid">
+                        <div class="t-cell">
+                            <span class="t-lbl">VEHICLE</span>
+                            <strong class="t-val" id="ticketPlateNum">MH12 AB 1234</strong>
+                        </div>
+                        <div class="t-cell">
+                            <span class="t-lbl">TYPE</span>
+                            <strong class="t-val" id="ticketVehicleType">🚗 Car</strong>
+                        </div>
+                        <div class="t-cell">
+                            <span class="t-lbl">DATE</span>
+                            <strong class="t-val" id="ticketDate">22 Sep 2026</strong>
+                        </div>
+                        <div class="t-cell">
+                            <span class="t-lbl">VALID TIME</span>
+                            <strong class="t-val" id="ticketTimeRange">10:00 - 12:00</strong>
+                        </div>
+                    </div>
+
+                    <!-- Digital QR Barcode -->
+                    <div class="ticket-qr-area">
+                        <div class="qr-code-box">
+                            <i class="fa-solid fa-qrcode fa-4x"></i>
+                        </div>
+                        <div class="ticket-barcode">
+                            <div class="barcode-lines"></div>
+                            <span class="pass-code" id="ticketPassCode">PW-9823-7712</span>
+                        </div>
+                    </div>
+
+                    <p class="ticket-instructions">
+                        <i class="fa-solid fa-circle-info"></i> Scan this QR code at Entry Gate Barrier to automatically open the boom arm.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Ticket Actions -->
+            <div class="ticket-actions">
+                <button class="ticket-action-btn primary" onclick="printOrDownloadTicket()">
+                    <i class="fa-solid fa-print"></i> Print / Save Pass
+                </button>
+                <button class="ticket-action-btn secondary" onclick="closeTicketModal(); navigateToBookings();">
+                    <i class="fa-solid fa-eye"></i> View in My Bookings
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Extend Parking Modal -->
+    <div class="modal-overlay" id="extendModal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeExtendModal()">&times;</button>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-clock-rotate-left text-amber"></i> Extend Parking Session</h3>
+                <p id="extendModalSubtitle">Slot A1 • VIT Parking</p>
+            </div>
+
+            <div class="extend-body">
+                <p>Choose additional time to extend your parking slot:</p>
+                <div class="extend-options">
+                    <button class="extend-opt-btn active" data-extra="30">+30 Mins (₹15)</button>
+                    <button class="extend-opt-btn" data-extra="60">+1 Hour (₹30)</button>
+                    <button class="extend-opt-btn" data-extra="120">+2 Hours (₹60)</button>
+                </div>
+
+                <div class="extend-summary">
+                    <div class="summary-line">
+                        <span>New End Time:</span>
+                        <strong id="extendNewEndTime">03:30 PM</strong>
+                    </div>
+                    <div class="summary-line">
+                        <span>Additional Charge:</span>
+                        <strong class="text-amber" id="extendExtraAmount">₹15</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="confirm-pay-btn" onclick="confirmExtendSession()">
+                    <i class="fa-solid fa-check"></i> Confirm Extension
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-top">
+                <div class="footer-logo">
+                    <span class="logo-mark">P</span>
+                    Park<span class="text-amber">Wise</span>
+                </div>
+                <p>Interactive Smart Parking Management System — Real-time booking, 2D Lot Navigation & Contactless QR Access.</p>
+            </div>
+
+            <div class="footer-bottom">
+                <p class="copyright">
+                    © 2026 ParkWise Inc. Designed for effortless city & campus parking.
+                </p>
+                <div class="footer-badges">
+                    <span class="footer-badge"><i class="fa-solid fa-lock"></i> 256-bit Encrypted</span>
+                    <span class="footer-badge"><i class="fa-solid fa-bolt"></i> Real-time Sync</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Frontend Script -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
