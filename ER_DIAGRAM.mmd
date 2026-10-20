@@ -1,0 +1,82 @@
+erDiagram
+    USERS ||--o{ VEHICLES : registers
+    USERS ||--o{ BOOKINGS : makes
+    PARKING_LOTS ||--o{ ZONES : contains
+    ZONES ||--o{ PARKING_SLOTS : contains
+    PARKING_SLOTS ||--o{ BOOKINGS : reserved_for
+    VEHICLES ||--o{ BOOKINGS : assigned_to
+    PARKING_SLOTS ||--o{ SLOT_AMENITIES : has
+    AMENITIES ||--o{ SLOT_AMENITIES : describes
+    BOOKINGS ||--o{ PAYMENTS : charged_by
+    BOOKINGS ||--o{ BOOKING_EXTENSIONS : extended_by
+
+    USERS {
+        int user_id PK
+        varchar name
+        varchar email UK
+        varchar phone
+        varchar password_hash
+        enum role
+    }
+    VEHICLES {
+        int vehicle_id PK
+        int user_id FK
+        varchar vehicle_number UK
+        enum vehicle_type
+        varchar vehicle_model
+    }
+    PARKING_LOTS {
+        int lot_id PK
+        varchar lot_name UK
+        varchar location
+        time opening_time
+        time closing_time
+    }
+    ZONES {
+        int zone_id PK
+        int lot_id FK
+        varchar zone_name
+    }
+    PARKING_SLOTS {
+        int slot_id PK
+        int zone_id FK
+        varchar slot_number
+        enum slot_type
+        decimal price_per_hour
+    }
+    AMENITIES {
+        int amenity_id PK
+        varchar name UK
+    }
+    SLOT_AMENITIES {
+        int slot_id PK, FK
+        int amenity_id PK, FK
+    }
+    BOOKINGS {
+        int booking_id PK
+        int user_id FK
+        int vehicle_id FK
+        int slot_id FK
+        datetime start_ts
+        datetime end_ts
+        decimal base_amount
+        decimal gst_amount
+        decimal total_amount
+        enum status
+    }
+    PAYMENTS {
+        int payment_id PK
+        int booking_id FK
+        decimal amount
+        enum payment_method
+        enum payment_status
+        datetime payment_date
+    }
+    BOOKING_EXTENSIONS {
+        int extension_id PK
+        int booking_id FK
+        int extra_minutes
+        datetime old_end_ts
+        datetime new_end_ts
+        decimal extra_amount
+    }
