@@ -692,7 +692,9 @@ def get_stats():
         sync_slot_statuses(cur)
         # Lot stats
         cur.execute('''SELECT l.lot_id, l.lot_name, COUNT(s.slot_id) AS total_slots,
-                              SUM(CASE WHEN s.status='occupied' THEN 1 ELSE 0 END) AS occupied_slots
+                              SUM(CASE WHEN s.slot_id IN (
+                                  SELECT slot_id FROM bookings WHERE status='booked'
+                              ) THEN 1 ELSE 0 END) AS occupied_slots
                        FROM parking_lots l
                        LEFT JOIN parking_slots s ON s.lot_id=l.lot_id
                        GROUP BY l.lot_id, l.lot_name ORDER BY l.lot_id''')
@@ -710,7 +712,9 @@ def get_stats():
             })
 
         # Zone stats aggregated cleanly in Python (immune to only_full_group_by)
-        cur.execute("SELECT slot_id, lot_id, slot_number, zone_name, status FROM parking_slots")
+        cur.execute("SELECT DISTINCT slot_id FROM bookings WHERE status='booked'")
+        reserved_slot_ids = {row['slot_id'] for row in cur.fetchall()}
+        cur.execute("SELECT slot_id, lot_id, slot_number, zone_name FROM parking_slots")
         all_slots_list = cur.fetchall()
         zone_map_data = {
             'Zone A': {'zone_name': 'Zone A', 'total_slots': 0, 'occupied_slots': 0},
@@ -722,7 +726,7 @@ def get_stats():
             if zname not in zone_map_data:
                 zone_map_data[zname] = {'zone_name': zname, 'total_slots': 0, 'occupied_slots': 0}
             zone_map_data[zname]['total_slots'] += 1
-            if sl['status'] == 'occupied':
+            if sl['slot_id'] in reserved_slot_ids:
                 zone_map_data[zname]['occupied_slots'] += 1
 
         zones = []
